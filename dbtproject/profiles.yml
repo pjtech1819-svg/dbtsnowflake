@@ -1,0 +1,15 @@
+dbtproject:
+  outputs:
+    dev:
+      account: GTMPIIL-FV24998
+      user: dbt
+      database: AIRBNB
+      role: TRANSFORM
+      private_key_path: "C:/Users/Admin/.dbt/rsa_key.p8"
+      private_key_passphrase: "1234"
+      schema: DEV
+      threads: 1
+      type: snowflake
+      user: dbt
+      warehouse: COMPUTE_WH
+  target: dev
