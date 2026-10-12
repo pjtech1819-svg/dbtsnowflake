@@ -6,3 +6,56 @@ CREATE OR REPLACE STAGE BTC.BTC_SCHEMA.BTC_STAGE
   FILE_FORMAT = (TYPE = PARQUET);
 
 List @BTC.BTC_SCHEMA.BTC_STAGE;
+CREATE OR REPLACE WAREHOUSE LARGE_WH
+  WAREHOUSE_SIZE = 'LARGE';
+SELECT
+  t.$1:hash AS hashkey,
+  t.$1:block_hash,
+  t.$1:block_number,
+  t.$1:block_timestamp,
+  t.$1:fee,
+  t.$1:input_value,
+  t.$1:output_value AS output_btc,
+  ROUND(t.$1:fee / t.$1:size, 12) AS fee_per_byte,
+  t.$1:is_coinbase,
+  t.$1:outputs
+FROM @BTC.BTC_SCHEMA.BTC_STAGE/transactions/date=2026-10-11 t;
+
+-- Create the target table for Bitcoin transactions
+CREATE OR REPLACE TABLE BTC.BTC_SCHEMA.BTC (
+  HASH_KEY VARCHAR,
+  BLOCK_HASH VARCHAR,
+  BLOCK_NUMBER INT,
+  BLOCK_TIMESTAMP TIMESTAMP,
+  FEE FLOAT,
+  INPUT_VALUE FLOAT,
+  OUTPUT_VALUE FLOAT,
+  FEE_PER_BYTE FLOAT,
+  IS_COINBASE BOOLEAN,
+  OUTPUTS VARIANT
+);
+
+-- List files in the stage (optional but useful to preview data files)
+LIST @BTC.BTC_SCHEMA.BTC_STAGE;
+
+-- Copy data from stage into the BTC table, with pattern filter for file names
+COPY INTO BTC.BTC_SCHEMA.BTC
+FROM (
+  SELECT
+    t.$1:hash AS hashkey,
+    t.$1:block_hash,
+    t.$1:block_number,
+    t.$1:block_timestamp,
+    t.$1:fee,
+    t.$1:input_value,
+    t.$1:output_value AS output_btc,
+    ROUND(t.$1:fee / t.$1:size, 12) AS fee_per_byte,
+    t.$1:is_coinbase,
+    t.$1:outputs
+  FROM @BTC.BTC_SCHEMA.BTC_STAGE/transactions t
+)
+PATTERN = '.*/[0-9]{6,7}[.]snappy[.]parquet';
+
+
+
+
