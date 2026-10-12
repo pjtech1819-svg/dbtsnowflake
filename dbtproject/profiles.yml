@@ -24,7 +24,7 @@ dbtproject:
       type: snowflake
       warehouse: LARGE_WH
 
-  target: dev
+  target: btc
 
 
 
